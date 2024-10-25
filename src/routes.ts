@@ -11,7 +11,11 @@ function routes(app: Express) {
   app.post('/add-to-basket', async (req: Request, res: Response) => {
     const { item } = req.body;
 
-    console.log(`Item added to basket: ${item}`);
+    if (!item) {
+      return res.status(400).send('Item is required');
+    }
+
+    console.log(`Item added to basket: ${JSON.stringify(item)}`);
     const channel = getChannel();
 
     channel.sendToQueue('orderQueue', Buffer.from(JSON.stringify({ item })), {
