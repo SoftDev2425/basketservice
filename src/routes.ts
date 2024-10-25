@@ -1,10 +1,24 @@
 import { Express, Request, Response } from 'express';
 import UserRouter from './routes/user.route';
+import { getChannel } from './utils/rabbitmq';
 
 function routes(app: Express) {
   app.get('/', (_req: Request, res: Response) =>
     res.send(`Hello from MTOGO: Basket Service!`),
   );
+
+  // Endpoint to add an item to the basket and publish an event
+  app.post('/add-to-basket', async (req: Request, res: Response) => {
+    const { item } = req.body;
+
+    console.log(`Item added to basket: ${item}`);
+    const channel = getChannel();
+
+    channel.sendToQueue('orderQueue', Buffer.from(JSON.stringify({ item })), {
+      persistent: true,
+    });
+    res.send('Item added to basket and event published.');
+  });
 
   app.get('/healthcheck', (_req: Request, res: Response) =>
     res.sendStatus(200),

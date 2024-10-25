@@ -1,0 +1,7 @@
+POST http://localhost:3001add-to-basket
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 2
+}
