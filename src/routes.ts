@@ -1,26 +1,36 @@
 import { Express, Request, Response } from 'express';
 import UserRouter from './routes/user.route';
 import { getChannel } from './utils/rabbitmq';
+import { Basket } from './proto/generated/basket';
+import { basket } from './basket';
 
 function routes(app: Express) {
   app.get('/', (_req: Request, res: Response) =>
     res.send(`Hello from MTOGO: Basket Service!`),
   );
 
+  app.get('/api/basket', (_req: Request, res: Response) => {
+    res.json(basket);
+  });
+
   // Endpoint to add an item to the basket and publish an event
-  app.post('/add-to-basket', async (req: Request, res: Response) => {
-    const { item } = req.body;
+  app.post('/api/basket', async (_req: Request, res: Response) => {
+    // const { _basket } = req.body;
 
-    if (!item) {
-      return res.status(400).send('Item is required');
+    // if (!_basket) {
+    //   return res.status(400).send('Basket details are required.');
+    // }
+
+    try {
+      const serializedMessage = Basket.encode(basket).finish();
+      const channel = getChannel();
+      channel.sendToQueue('orderQueue', Buffer.from(serializedMessage), {
+        persistent: true,
+      });
+    } catch (error) {
+      console.error('Error publishing message to queue:', error);
+      res.status(500).send('Error adding item to basket.');
     }
-
-    console.log(`Item added to basket: ${JSON.stringify(item)}`);
-    const channel = getChannel();
-
-    channel.sendToQueue('orderQueue', Buffer.from(JSON.stringify({ item })), {
-      persistent: true,
-    });
     res.send('Item added to basket and event published.');
   });
 
