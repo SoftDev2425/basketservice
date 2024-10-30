@@ -1,7 +1,7 @@
 import { Express, Request, Response } from 'express';
 import UserRouter from './routes/user.route';
 import { getChannel } from './utils/rabbitmq';
-import { Basket } from './proto/generated/basket';
+import { Basket } from './protos/generated/basket';
 import { basket } from './basket';
 
 function routes(app: Express) {
@@ -23,6 +23,7 @@ function routes(app: Express) {
 
     try {
       const serializedMessage = Basket.encode(basket).finish();
+      console.log("serializedMessage", serializedMessage);
       const channel = getChannel();
       channel.sendToQueue('orderQueue', Buffer.from(serializedMessage), {
         persistent: true,
