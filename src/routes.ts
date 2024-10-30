@@ -23,7 +23,7 @@ function routes(app: Express) {
 
     try {
       const serializedMessage = Basket.encode(basket).finish();
-      console.log("serializedMessage", serializedMessage);
+      console.log('serializedMessage', serializedMessage);
       const channel = getChannel();
       channel.sendToQueue('orderQueue', Buffer.from(serializedMessage), {
         persistent: true,
